@@ -14,6 +14,7 @@ import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
+import kotlin.math.floor
 
 class PortalListener(private val plugin: TownTeleport) : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -29,12 +30,20 @@ class PortalListener(private val plugin: TownTeleport) : Listener {
             return
         }
         val town = townBlock.town
-        if (town.mayor?.name != e.player.name) {
+        if (town.mayor?.name != e.player.name && !e.player.hasPermission("townteleport.admin")) {
             e.player.sendMessage("${ChatColor.RED}ポータルを設置できるのは町長のみです。")
             e.isCancelled = true
             return
         }
         val name = plugin.dataConfig.findNextName(town.uuid)
+        val currentPortals = plugin.dataConfig.townTeleports.count { it.townId == town.uuid }
+        val maxPortals = floor(town.residents.size / 5.0) + 2
+        if (currentPortals >= maxPortals && !e.player.hasPermission("townteleport.admin")) {
+            e.player.sendMessage("${ChatColor.RED}テレポートポータルはこれ以上設置できません。")
+            e.player.sendMessage("${ChatColor.RED}町の人数が増えると設置できるポータル数が増えます。")
+            e.isCancelled = true
+            return
+        }
         plugin.dataConfig.townTeleports.add(TownTeleportData(town.uuid, name, e.blockPlaced.location, 0.0, 0.0, mutableSetOf(), mutableSetOf()))
         e.player.sendMessage("${ChatColor.GREEN}テレポートポータル(${ChatColor.YELLOW}$name${ChatColor.GREEN})を設置しました。")
         plugin.saveAsync()

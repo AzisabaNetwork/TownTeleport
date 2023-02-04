@@ -21,6 +21,7 @@ object Holograms {
         armorStand.isInvisible = true
         armorStand.isInvulnerable = true
         armorStand.isNoGravity = true
+        armorStand.isSmall = true
         if (text != null) {
             armorStand.customNameVisible = true
             armorStand.customName = ChatComponentText(text)
@@ -64,13 +65,13 @@ object Holograms {
     fun show(teleport: TownTeleportData, player: Player) {
         val map = shown.computeIfAbsent(player.uniqueId) { mutableMapOf() }
         if (map.containsKey(teleport)) return
-        val teleportName = createHologram(teleport.location.clone().add(0.5, 0.75, 0.5), "${ChatColor.LIGHT_PURPLE}✦ ${ChatColor.YELLOW}${teleport.name.colored()}")
+        val teleportName = createHologram(teleport.location.clone().add(0.5, 1.75, 0.5), "${ChatColor.LIGHT_PURPLE}✦ ${ChatColor.YELLOW}${teleport.name.colored()}")
         teleportName.spawn(player)
-        val useCost = createHologram(teleport.location.clone().add(0.5, 0.5, 0.5), "${ChatColor.GOLD}使用コスト: ${ChatColor.YELLOW}${teleport.useCost.toReadableString()}")
+        val useCost = createHologram(teleport.location.clone().add(0.5, 1.5, 0.5), "${ChatColor.GOLD}使用コスト: ${ChatColor.YELLOW}${teleport.useCost.toReadableString()}")
         useCost.spawn(player)
-        val teleportCost = createHologram(teleport.location.clone().add(0.5, 0.25, 0.5), "${ChatColor.GOLD}テレポートコスト: ${ChatColor.YELLOW}${teleport.teleportCost.toReadableString()}")
+        val teleportCost = createHologram(teleport.location.clone().add(0.5, 1.25, 0.5), "${ChatColor.GOLD}テレポートコスト: ${ChatColor.YELLOW}${teleport.teleportCost.toReadableString()}")
         teleportCost.spawn(player)
-        val clickToUse = createHologram(teleport.location.clone().add(0.5, 0.0, 0.5), "${ChatColor.GOLD}クリックで使用")
+        val clickToUse = createHologram(teleport.location.clone().add(0.5, 1.0, 0.5), "${ChatColor.GOLD}クリックで使用")
         clickToUse.spawn(player)
         map[teleport] = listOf(teleportName, useCost, teleportCost, clickToUse)
     }

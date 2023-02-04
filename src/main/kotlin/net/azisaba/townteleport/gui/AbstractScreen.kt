@@ -24,10 +24,12 @@ abstract class AbstractScreen : InventoryHolder {
             val origBlockData = loc0.block.blockData
             player.sendBlockChange(loc0, Material.AIR.createBlockData())
             player.sendBlockChange(loc0, Material.OAK_SIGN.createBlockData())
-            awaitingSign[player.uniqueId] = action
+            awaitingSign[player.uniqueId] = {
+                player.sendBlockChange(loc0, origBlockData)
+                action(it)
+            }
             (player as CraftPlayer).handle.playerConnection
                 .sendPacket(PacketPlayOutOpenSignEditor(BlockPosition(loc0.blockX, loc0.blockY, loc0.blockZ)))
-            player.sendBlockChange(loc0, origBlockData)
         }
     }
 
