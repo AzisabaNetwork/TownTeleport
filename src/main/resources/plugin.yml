@@ -1,0 +1,10 @@
+name: TownTeleport
+version: @version@
+main: net.azisaba.townteleport.TownTeleport
+api-version: 1.15
+author: Azisaba Network
+depend:
+  - Towny
+commands:
+  townteleport:
+    permission: townteleport.command
