@@ -74,6 +74,7 @@ class DataConfig(val config: YamlConfiguration) {
                 )
             )
         }
+        config.getKeys(false).forEach { config.set(it, null) }
         towns.forEach { (townId, list) ->
             config.set(townId, list)
         }

@@ -42,7 +42,11 @@ class PortalDeleteConfirmScreen(
                     screen.player.sendMessage("${ChatColor.RED}このテレポートポータルを削除する権限がありません。")
                     return
                 }
-                screen.plugin.dataConfig.townTeleports.remove(screen.teleport)
+                if (!screen.plugin.dataConfig.townTeleports.remove(screen.teleport)) {
+                    screen.plugin.logger.warning("Failed to remove portal ${screen.teleport.name} from config.")
+                    screen.player.sendMessage("${ChatColor.RED}テレポートポータル(${ChatColor.YELLOW}${screen.teleport.name.colored()}${ChatColor.RED})の削除に失敗しました。")
+                    return
+                }
                 screen.teleport.location.block.type = Material.AIR
                 ItemUtil.createPortalItem().let {
                     screen.player.inventory.addItem(it).values.forEach { item ->
