@@ -5,6 +5,7 @@ import net.azisaba.townteleport.TownTeleport
 import net.azisaba.townteleport.util.colored
 import net.azisaba.townteleport.data.TownTeleportData
 import net.azisaba.townteleport.util.ItemUtil
+import net.azisaba.townteleport.util.PlayerUtil.closeInventoryLater
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
@@ -56,10 +57,10 @@ class PortalDeleteConfirmScreen(
                     }
                 }
                 screen.player.sendMessage("${ChatColor.GREEN}テレポートポータル(${ChatColor.YELLOW}${screen.teleport.name.colored()}${ChatColor.GREEN})を削除しました。")
-                screen.player.closeInventory()
+                screen.player.closeInventoryLater()
                 screen.plugin.saveAsync()
             } else if (e.slot == 15) {
-                e.whoClicked.closeInventory()
+                e.whoClicked.closeInventoryLater()
             }
         }
     }

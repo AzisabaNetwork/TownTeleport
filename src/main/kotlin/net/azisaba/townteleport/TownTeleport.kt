@@ -7,12 +7,14 @@ import net.azisaba.townteleport.gui.PortalDeleteConfirmScreen
 import net.azisaba.townteleport.gui.PortalScreen
 import net.azisaba.townteleport.gui.PortalSettingsScreen
 import net.azisaba.townteleport.gui.PortalTeleportPermissionScreen
+import net.azisaba.townteleport.listener.NoPortalListener
 import net.azisaba.townteleport.listener.PlayerListener
 import net.azisaba.townteleport.listener.PortalListener
 import net.azisaba.townteleport.task.ShowHologramTask
 import net.azisaba.townteleport.util.ChannelUtil
 import net.azisaba.townteleport.util.Holograms
 import net.azisaba.townteleport.util.ItemUtil
+import net.azisaba.townteleport.util.PlayerUtil
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
@@ -22,6 +24,14 @@ class TownTeleport : JavaPlugin() {
     lateinit var dataConfig: DataConfig
 
     override fun onEnable() {
+        PlayerUtil.plugin = this
+
+        if (Bukkit.getPluginManager().getPlugin("Towny") == null) {
+            logger.warning("Towny isn't installed. Registering listener that prevents placing of end portal frame")
+            Bukkit.getPluginManager().registerEvents(NoPortalListener, this)
+            return
+        }
+
         dataConfig = DataConfig(ConfigFile.load(File(dataFolder, "data.yml")))
 
         Bukkit.getPluginCommand("townteleport")?.let {
@@ -49,6 +59,10 @@ class TownTeleport : JavaPlugin() {
     }
 
     override fun onDisable() {
+        if (Bukkit.getPluginManager().getPlugin("Towny") == null) {
+            return // do nothing
+        }
+
         Bukkit.getOnlinePlayers().forEach { player ->
             ChannelUtil.eject(player)
             Holograms.hideAll(player)

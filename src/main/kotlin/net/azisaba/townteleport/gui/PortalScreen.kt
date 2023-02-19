@@ -4,6 +4,7 @@ import com.palmergames.bukkit.towny.`object`.Town
 import net.azisaba.townteleport.TownTeleport
 import net.azisaba.townteleport.util.colored
 import net.azisaba.townteleport.data.TownTeleportData
+import net.azisaba.townteleport.util.PlayerUtil.closeInventoryLater
 import net.azisaba.townteleport.util.toReadableString
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.Bukkit
@@ -102,7 +103,7 @@ class PortalScreen(
                             ).block.type.isAir
                         ) {
                             player.sendMessage("${ChatColor.RED}テレポート先が塞がっているため、テレポートできません。")
-                            player.closeInventory()
+                            player.closeInventoryLater()
                             return
                         }
                         val totalCost = screen.interactedTeleport.useCost + teleport.teleportCost
@@ -112,7 +113,7 @@ class PortalScreen(
                             economy?.getBalance(player)?.let {
                                 if (it < totalCost) {
                                     player.sendMessage("${ChatColor.RED}テレポートに必要なお金(${ChatColor.YELLOW}${totalCost.toReadableString()}${ChatColor.RED})が足りません。")
-                                    player.closeInventory()
+                                    player.closeInventoryLater()
                                     return
                                 }
                             }
@@ -122,7 +123,7 @@ class PortalScreen(
                         player.playSound(location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f)
                         screen.plugin.logger.info("${player.name} (${player.uniqueId}) teleported to ${teleport.name} (${teleport.location})")
                         screen.plugin.logger.info("Collected ${totalCost.toReadableString()} from ${player.name} (${player.uniqueId}) and paid ${totalCost * 0.1} to town ${screen.town.name}")
-                        player.closeInventory()
+                        player.closeInventoryLater()
                         player.teleport(location)
                         if (!canModify && totalCost > 0) {
                             player.sendMessage("${ChatColor.GREEN}${totalCost.toReadableString()}を支払い、${ChatColor.YELLOW}${teleport.name.colored()}${ChatColor.GREEN}にテレポートしました。")
@@ -144,7 +145,7 @@ class PortalScreen(
                 49 -> {
                     // close
                     if (clickedItem.type == Material.BARRIER) {
-                        screen.player.closeInventory()
+                        screen.player.closeInventoryLater()
                     }
                 }
                 52 -> {

@@ -4,6 +4,7 @@ import net.azisaba.townteleport.TownTeleport
 import net.azisaba.townteleport.data.ModifyPermissiveTarget
 import net.azisaba.townteleport.data.TownTeleportData
 import net.azisaba.townteleport.util.Holograms
+import net.azisaba.townteleport.util.PlayerUtil.closeInventoryLater
 import net.azisaba.townteleport.util.colored
 import net.azisaba.townteleport.util.parseNumber
 import net.azisaba.townteleport.util.toReadableString
@@ -142,7 +143,7 @@ class PortalSettingsScreen(
                     }
                 }
             } else if (e.slot == 49) {
-                e.whoClicked.closeInventory()
+                e.whoClicked.closeInventoryLater()
             }
         }
     }

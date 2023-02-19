@@ -3,7 +3,7 @@ version: @version@
 main: net.azisaba.townteleport.TownTeleport
 api-version: 1.15
 author: Azisaba Network
-depend:
+softdepend:
   - Towny
 commands:
   townteleport:
