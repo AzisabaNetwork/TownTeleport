@@ -4,6 +4,7 @@ import com.palmergames.bukkit.towny.TownyAPI
 import net.azisaba.townteleport.TownTeleport
 import net.azisaba.townteleport.data.TownTeleportData
 import net.azisaba.townteleport.gui.PortalScreen
+import net.azisaba.townteleport.util.LocationUtil.equalsBlockPos
 import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack
@@ -47,6 +48,18 @@ class PortalListener(private val plugin: TownTeleport) : Listener {
         plugin.dataConfig.townTeleports.add(TownTeleportData(town.uuid, name, e.blockPlaced.location, 0.0, 0.0, mutableSetOf(), mutableSetOf()))
         e.player.sendMessage("${ChatColor.GREEN}テレポートポータル(${ChatColor.YELLOW}$name${ChatColor.GREEN})を設置しました。")
         plugin.saveAsync()
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    fun onBlockPlaceOnTopOfPortal(e: BlockPlaceEvent) {
+        val below = e.blockPlaced.location.clone().subtract(0.0, 1.0, 0.0).block
+        val townBlock = TownyAPI.getInstance().getTownBlock(below.location) ?: return
+        if (!townBlock.hasTown()) return
+        val town = townBlock.town
+        if (plugin.dataConfig.townTeleports.any { it.townId == town.uuid && it.location.equalsBlockPos(below.location) }) {
+            e.isCancelled = true
+            e.player.sendMessage("${ChatColor.RED}ここにブロックは置けません。")
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
