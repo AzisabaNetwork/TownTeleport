@@ -37,14 +37,6 @@ class PortalListener(private val plugin: TownTeleport) : Listener {
             return
         }
         val name = plugin.dataConfig.findNextName(town.uuid)
-        val currentPortals = plugin.dataConfig.townTeleports.count { it.townId == town.uuid }
-        val maxPortals = floor(town.residents.size / 10.0) + 2
-        if (currentPortals >= maxPortals && !e.player.hasPermission("townteleport.admin")) {
-            e.player.sendMessage("${ChatColor.RED}テレポートポータルはこれ以上設置できません。")
-            e.player.sendMessage("${ChatColor.RED}町の人数が増えると設置できるポータル数が増えます。")
-            e.isCancelled = true
-            return
-        }
         plugin.dataConfig.townTeleports.add(TownTeleportData(town.uuid, name, e.blockPlaced.location, 0.0, 0.0, mutableSetOf(), mutableSetOf()))
         e.player.sendMessage("${ChatColor.GREEN}テレポートポータル(${ChatColor.YELLOW}$name${ChatColor.GREEN})を設置しました。")
         plugin.saveAsync()
