@@ -1,6 +1,6 @@
 package net.azisaba.townteleport.event
 
-import net.minecraft.server.v1_15_R1.BlockPosition
+import net.minecraft.core.BlockPos
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
@@ -13,7 +13,7 @@ import org.bukkit.event.HandlerList
  */
 data class AsyncPreSignChangeEvent(
     val player: Player,
-    val pos: BlockPosition,
+    val pos: BlockPos,
     val lines: List<String>,
 ) : Event(true) {
     override fun getHandlers() = handlerList

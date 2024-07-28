@@ -1,13 +1,16 @@
+import io.papermc.paperweight.userdev.ReobfArtifactConfiguration
+
 plugins {
     kotlin("jvm") version "1.8.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.github.goooler.shadow") version "8.1.8"
+    id("io.papermc.paperweight.userdev") version "1.7.1"
 }
 
 group = "net.azisaba"
-version = "1.0-SNAPSHOT"
+version = "1.20.2+1.0.0"
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 repositories {
@@ -19,11 +22,14 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("org.spigotmc:spigot:1.15.2-R0.1-SNAPSHOT")
     compileOnly("com.github.TownyAdvanced:Towny:0.96.1.11")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+    compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
     testImplementation(kotlin("test"))
 }
+
+paperweight.reobfArtifactConfiguration.set(ReobfArtifactConfiguration.REOBF_PRODUCTION)
 
 tasks {
     compileJava {
@@ -55,5 +61,5 @@ tasks {
 }
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(17)
 }

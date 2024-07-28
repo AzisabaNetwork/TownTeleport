@@ -1,54 +1,54 @@
 package net.azisaba.townteleport.util
 
 import net.azisaba.townteleport.data.TownTeleportData
-import net.minecraft.server.v1_15_R1.ChatComponentText
-import net.minecraft.server.v1_15_R1.EntityArmorStand
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityDestroy
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityMetadata
-import net.minecraft.server.v1_15_R1.PacketPlayOutSpawnEntity
+import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
+import net.minecraft.world.entity.decoration.ArmorStand
 import org.bukkit.Bukkit
-import org.bukkit.ChatColor
 import org.bukkit.Location
-import org.bukkit.craftbukkit.v1_15_R1.CraftWorld
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer
+import org.bukkit.craftbukkit.v1_20_R2.CraftWorld
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer
 import org.bukkit.entity.Player
-import java.util.UUID
+import java.util.*
 
 object Holograms {
-    private fun createHologram(location: Location, text: String?): EntityArmorStand {
+    private fun createHologram(location: Location, text: String?): ArmorStand {
         val worldServer = (location.world!! as CraftWorld).handle
-        val armorStand = EntityArmorStand(worldServer, location.x, location.y, location.z)
+        val armorStand = ArmorStand(worldServer, location.x, location.y, location.z)
         armorStand.isInvisible = true
         armorStand.isInvulnerable = true
         armorStand.isNoGravity = true
         armorStand.isSmall = true
         if (text != null) {
-            armorStand.customNameVisible = true
-            armorStand.customName = ChatComponentText(text)
+            armorStand.isCustomNameVisible = true
+            armorStand.customName = Component.literal(text)
         }
         return armorStand
     }
 
-    private fun EntityArmorStand.spawn(player: Player): EntityArmorStand {
-        (player as CraftPlayer).handle.playerConnection.apply {
-            sendPacket(getSpawnPacket())
-            sendPacket(getUpdatePacket())
+    private fun ArmorStand.spawn(player: Player): ArmorStand {
+        (player as CraftPlayer).handle.connection.apply {
+            send(getSpawnPacket())
+            getUpdatePacket()?.let { send(it) }
         }
         return this
     }
 
-    private fun EntityArmorStand.destroy(player: Player): EntityArmorStand {
-        (player as CraftPlayer).handle.playerConnection.sendPacket(getDestroyPacket())
+    private fun ArmorStand.destroy(player: Player): ArmorStand {
+        (player as CraftPlayer).handle.connection.send(getDestroyPacket())
         return this
     }
 
-    private fun EntityArmorStand.getSpawnPacket() = PacketPlayOutSpawnEntity(this)
+    private fun ArmorStand.getSpawnPacket() = ClientboundAddEntityPacket(this)
 
-    private fun EntityArmorStand.getDestroyPacket() = PacketPlayOutEntityDestroy(this.id)
+    private fun ArmorStand.getDestroyPacket() = ClientboundRemoveEntitiesPacket(this.id)
 
-    private fun EntityArmorStand.getUpdatePacket() = PacketPlayOutEntityMetadata(this.id, this.dataWatcher, true)
+    private fun ArmorStand.getUpdatePacket() =
+        this.entityData.nonDefaultValues?.let { ClientboundSetEntityDataPacket(this.id, it) }
 
-    private val shown = mutableMapOf<UUID, MutableMap<TownTeleportData, List<EntityArmorStand>>>()
+    private val shown = mutableMapOf<UUID, MutableMap<TownTeleportData, List<ArmorStand>>>()
 
     fun updateAll(teleport: TownTeleportData) {
         shown.forEach { (uuid, map) ->
@@ -65,13 +65,13 @@ object Holograms {
     fun show(teleport: TownTeleportData, player: Player) {
         val map = shown.computeIfAbsent(player.uniqueId) { mutableMapOf() }
         if (map.containsKey(teleport)) return
-        val teleportName = createHologram(teleport.location.clone().add(0.5, 1.75, 0.5), "${ChatColor.LIGHT_PURPLE}✦ ${ChatColor.YELLOW}${teleport.name.colored()}")
+        val teleportName = createHologram(teleport.location.clone().add(0.5, 1.75, 0.5), "§d✦ §e${teleport.name.colored()}")
         teleportName.spawn(player)
-        val useCost = createHologram(teleport.location.clone().add(0.5, 1.5, 0.5), "${ChatColor.GOLD}使用コスト: ${ChatColor.YELLOW}${teleport.useCost.toReadableString()}")
+        val useCost = createHologram(teleport.location.clone().add(0.5, 1.5, 0.5), "§6使用コスト: §e${teleport.useCost.toReadableString()}")
         useCost.spawn(player)
-        val teleportCost = createHologram(teleport.location.clone().add(0.5, 1.25, 0.5), "${ChatColor.GOLD}テレポートコスト: ${ChatColor.YELLOW}${teleport.teleportCost.toReadableString()}")
+        val teleportCost = createHologram(teleport.location.clone().add(0.5, 1.25, 0.5), "§6テレポートコスト: §e${teleport.teleportCost.toReadableString()}")
         teleportCost.spawn(player)
-        val clickToUse = createHologram(teleport.location.clone().add(0.5, 1.0, 0.5), "${ChatColor.GOLD}クリックで使用")
+        val clickToUse = createHologram(teleport.location.clone().add(0.5, 1.0, 0.5), "§6クリックで使用")
         clickToUse.spawn(player)
         map[teleport] = listOf(teleportName, useCost, teleportCost, clickToUse)
     }

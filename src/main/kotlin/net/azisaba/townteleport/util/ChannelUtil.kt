@@ -2,11 +2,11 @@ package net.azisaba.townteleport.util
 
 import io.netty.channel.Channel
 import net.azisaba.townteleport.network.PacketHandler
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer
 import org.bukkit.entity.Player
 
 object ChannelUtil {
-    private fun getChannel(player: Player): Channel? = (player as CraftPlayer).handle.playerConnection.networkManager.channel
+    private fun getChannel(player: Player): Channel? = (player as CraftPlayer).handle.connection.connection.channel
 
     /**
      * Injects a [PacketHandler] into the player's channel.

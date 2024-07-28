@@ -1,10 +1,10 @@
 package net.azisaba.townteleport.gui
 
 import net.azisaba.townteleport.event.AsyncPreSignChangeEvent
-import net.minecraft.server.v1_15_R1.BlockPosition
-import net.minecraft.server.v1_15_R1.PacketPlayOutOpenSignEditor
+import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket
 import org.bukkit.Material
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -28,8 +28,8 @@ abstract class AbstractScreen : InventoryHolder {
                 player.sendBlockChange(loc0, origBlockData)
                 action(it)
             }
-            (player as CraftPlayer).handle.playerConnection
-                .sendPacket(PacketPlayOutOpenSignEditor(BlockPosition(loc0.blockX, loc0.blockY, loc0.blockZ)))
+            (player as CraftPlayer).handle.connection
+                .send(ClientboundOpenSignEditorPacket(BlockPos(loc0.blockX, loc0.blockY, loc0.blockZ), true))
         }
     }
 

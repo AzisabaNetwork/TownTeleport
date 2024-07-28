@@ -5,9 +5,11 @@ import net.azisaba.townteleport.TownTeleport
 import net.azisaba.townteleport.data.TownTeleportData
 import net.azisaba.townteleport.gui.PortalScreen
 import net.azisaba.townteleport.util.LocationUtil.equalsBlockPos
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.ChatColor
 import org.bukkit.Material
-import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack
+import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -15,7 +17,6 @@ import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
-import kotlin.math.floor
 
 class PortalListener(private val plugin: TownTeleport) : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -23,7 +24,7 @@ class PortalListener(private val plugin: TownTeleport) : Listener {
         if (e.itemInHand.type != Material.END_PORTAL_FRAME) return
         val nmsItem = CraftItemStack.asNMSCopy(e.itemInHand)
         val tag = nmsItem.tag ?: return
-        if (!tag.hasKey("TownTeleportBlock")) return
+        if (!tag.contains("TownTeleportBlock")) return
         val townBlock = TownyAPI.getInstance().getTownBlock(e.blockPlaced.location)
         if (townBlock == null || !townBlock.hasTown()) {
             e.player.sendMessage("${ChatColor.RED}ここには設置できません。")
@@ -50,7 +51,7 @@ class PortalListener(private val plugin: TownTeleport) : Listener {
         val town = townBlock.town
         if (plugin.dataConfig.townTeleports.any { it.townId == town.uuid && it.location.equalsBlockPos(below.location) }) {
             e.isCancelled = true
-            e.player.sendMessage("${ChatColor.RED}ここにブロックは置けません。")
+            e.player.sendMessage(Component.text("ここにブロックは置けません。", NamedTextColor.RED))
         }
     }
 
