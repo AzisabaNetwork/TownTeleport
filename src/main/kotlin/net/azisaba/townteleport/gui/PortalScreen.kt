@@ -118,7 +118,7 @@ class PortalScreen(
                                 }
                             }
                             economy?.withdrawPlayer(player, totalCost)
-                            screen.town.account.collect(totalCost * 0.1, "Teleport to ${teleport.name} by ${player.name}")
+                            screen.town.account.deposit(totalCost * 0.1, "Teleport to ${teleport.name} by ${player.name}")
                         }
                         player.playSound(location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f)
                         screen.plugin.logger.info("${player.name} (${player.uniqueId}) teleported to ${teleport.name} (${teleport.location})")

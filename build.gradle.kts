@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "net.azisaba"
-version = "1.20.2+1.0.0"
+version = "1.20.2+1.0.0a"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    compileOnly("com.github.TownyAdvanced:Towny:0.96.1.11")
+    compileOnly("com.github.TownyAdvanced:Towny:0.100.3.0")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
     paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")

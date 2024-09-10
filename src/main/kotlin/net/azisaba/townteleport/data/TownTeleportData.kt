@@ -24,7 +24,7 @@ data class TownTeleportData(
     fun hasPermissionToModify(resident: Resident?): Boolean {
         if (resident == null) return false
         if (resident.isMayor) return true
-        if (modifyPermission.contains(ModifyPermissiveTarget.Assistant) && resident.town.hasAssistant(resident)) return true
+        if (modifyPermission.contains(ModifyPermissiveTarget.Assistant) && resident.town.hasResidentWithRank(resident, "Assistant")) return true
         if (modifyPermission.contains(ModifyPermissiveTarget.Resident)) return true
         return false
     }

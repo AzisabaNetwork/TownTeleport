@@ -61,7 +61,7 @@ class PortalListener(private val plugin: TownTeleport) : Listener {
         val clicked = e.clickedBlock
         if (clicked?.type != Material.END_PORTAL_FRAME) return
         val townBlock = TownyAPI.getInstance().getTownBlock(clicked.location)
-        if (townBlock != null && !townBlock.hasTown()) return
+        if (townBlock == null || !townBlock.hasTown()) return
         val town = townBlock.town
         val teleport = plugin.dataConfig.townTeleports.find { it.townId == town.uuid && it.location == clicked.location } ?: return
         e.isCancelled = true
@@ -72,7 +72,7 @@ class PortalListener(private val plugin: TownTeleport) : Listener {
     fun onPortalBroken(e: BlockBreakEvent) {
         if (e.block.type != Material.END_PORTAL_FRAME) return
         val townBlock = TownyAPI.getInstance().getTownBlock(e.block.location)
-        if (townBlock != null && !townBlock.hasTown()) return
+        if (townBlock == null || !townBlock.hasTown()) return
         val town = townBlock.town
         val teleport = plugin.dataConfig.townTeleports.find { it.townId == town.uuid && it.location == e.block.location } ?: return
         e.isCancelled = true
