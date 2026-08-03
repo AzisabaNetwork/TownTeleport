@@ -1,10 +1,11 @@
 package net.azisaba.townteleport.gui
 
-import com.palmergames.bukkit.towny.`object`.Town
+import net.azisaba.townia.api.TowniaAPI
+import net.azisaba.townia.data.Town
 import net.azisaba.townteleport.TownTeleport
-import net.azisaba.townteleport.util.colored
 import net.azisaba.townteleport.data.TownTeleportData
 import net.azisaba.townteleport.util.PlayerUtil.closeInventoryLater
+import net.azisaba.townteleport.util.colored
 import net.azisaba.townteleport.util.toReadableString
 import net.milkbowl.vault.economy.Economy
 import org.bukkit.Bukkit
@@ -29,7 +30,7 @@ class PortalScreen(
         plugin
             .dataConfig
             .townTeleports
-            .filter { it.townId == town.uuid && it.hasPermissionToTeleport(town, player) }
+            .filter { it.townId == town.id && it.hasPermissionToTeleport(town, player) }
             .sortedBy { it.name }
 
     init {
@@ -43,8 +44,9 @@ class PortalScreen(
         for (i in 45..53) {
             inv.setItem(i, createItem(Material.BLACK_STAINED_GLASS_PANE, " "))
         }
+        val resident = TowniaAPI.get()?.getResident(player.uniqueId)?.orElse(null)
         teleports.subList(page * 45, min(teleports.size, (page + 1) * 45)).forEachIndexed { index, teleport ->
-            val canModify = player.hasPermission("townteleport.admin") || teleport.hasPermissionToModify(town.residents.find { it.name == player.name })
+            val canModify = player.hasPermission("townteleport.admin") || teleport.hasPermissionToModify(resident, town)
             val lore = mutableListOf<String>()
             teleport.location.apply {
                 lore.add("${ChatColor.GOLD}テレポート先: ${ChatColor.GREEN}${world?.name}, $blockX, $blockY, $blockZ")
@@ -68,7 +70,7 @@ class PortalScreen(
             inv.setItem(45, createItem(Material.ARROW, "${ChatColor.GOLD}前のページ"))
         }
         inv.setItem(49, createItem(Material.BARRIER, "${ChatColor.RED}閉じる"))
-        if (player.hasPermission("townteleport.admin") || town.mayor.name == player.name) {
+        if (player.hasPermission("townteleport.admin") || town.mayorUuid == player.uniqueId) {
             inv.setItem(52, createItem(Material.REDSTONE_BLOCK, "${ChatColor.RED}テレポートポータルを削除"))
         }
         if (teleports.size > (page + 1) * 45) {
@@ -91,7 +93,8 @@ class PortalScreen(
                     if (clickedItem.type != Material.ENDER_PEARL) return
                     val teleport = screen.teleports[screen.page * 45 + e.slot]
                     val player = e.whoClicked as Player
-                    val canModify = player.hasPermission("townteleport.admin") || teleport.hasPermissionToModify(screen.town.residents.find { it.name == player.name })
+                    val resident = TowniaAPI.get()?.getResident(player.uniqueId)?.orElse(null)
+                    val canModify = player.hasPermission("townteleport.admin") || teleport.hasPermissionToModify(resident, screen.town)
                     if (e.click.isLeftClick || !canModify) {
                         val location = teleport.location.clone()
                         location.yaw = player.location.yaw
@@ -118,7 +121,7 @@ class PortalScreen(
                                 }
                             }
                             economy?.withdrawPlayer(player, totalCost)
-                            screen.town.account.collect(totalCost * 0.1, "Teleport to ${teleport.name} by ${player.name}")
+                            screen.town.id?.let { TowniaAPI.get()?.addTownBalance(it, totalCost * 0.1) }
                         }
                         player.playSound(location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f)
                         screen.plugin.logger.info("${player.name} (${player.uniqueId}) teleported to ${teleport.name} (${teleport.location})")
@@ -131,7 +134,7 @@ class PortalScreen(
                             player.sendMessage("${ChatColor.YELLOW}${teleport.name.colored()}${ChatColor.GREEN}にテレポートしました。")
                         }
                     } else {
-                        val isMayor = screen.town.mayor.name == screen.player.name
+                        val isMayor = screen.town.mayorUuid == screen.player.uniqueId
                         screen.player.openInventory(PortalSettingsScreen(screen.plugin, player, isMayor, teleport).inventory)
                     }
                 }

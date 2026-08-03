@@ -1,11 +1,11 @@
 package net.azisaba.townteleport.gui
 
-import com.palmergames.bukkit.towny.`object`.Town
+import net.azisaba.townia.data.Town
 import net.azisaba.townteleport.TownTeleport
-import net.azisaba.townteleport.util.colored
 import net.azisaba.townteleport.data.TownTeleportData
 import net.azisaba.townteleport.util.ItemUtil
 import net.azisaba.townteleport.util.PlayerUtil.closeInventoryLater
+import net.azisaba.townteleport.util.colored
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
@@ -39,7 +39,7 @@ class PortalDeleteConfirmScreen(
             val screen = e.clickedInventory?.holder
             if (screen !is PortalDeleteConfirmScreen) return
             if (e.slot == 11) {
-                if (!screen.player.hasPermission("townteleport.admin") && screen.town.mayor.name != screen.player.name) {
+                if (!screen.player.hasPermission("townteleport.admin") && screen.town.mayorUuid != screen.player.uniqueId) {
                     screen.player.sendMessage("${ChatColor.RED}このテレポートポータルを削除する権限がありません。")
                     return
                 }
@@ -49,7 +49,7 @@ class PortalDeleteConfirmScreen(
                     return
                 }
                 screen.teleport.location.block.type = Material.AIR
-                ItemUtil.createPortalItem().let {
+                ItemUtil.createPortalItem(screen.plugin).let {
                     screen.player.inventory.addItem(it).values.forEach { item ->
                         screen.player.world.dropItem(screen.player.location, item).let { itemEntity ->
                             itemEntity.isGlowing = true

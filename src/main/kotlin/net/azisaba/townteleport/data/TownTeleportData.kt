@@ -1,7 +1,8 @@
 package net.azisaba.townteleport.data
 
-import com.palmergames.bukkit.towny.`object`.Resident
-import com.palmergames.bukkit.towny.`object`.Town
+import net.azisaba.townia.api.TowniaAPI
+import net.azisaba.townia.data.Town
+import net.azisaba.townia.data.TowniaPlayer
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import java.util.UUID
@@ -21,22 +22,33 @@ data class TownTeleportData(
         }
     }
 
-    fun hasPermissionToModify(resident: Resident?): Boolean {
+    fun hasPermissionToModify(resident: TowniaPlayer?, town: Town? = null): Boolean {
         if (resident == null) return false
-        if (resident.isMayor) return true
-        if (modifyPermission.contains(ModifyPermissiveTarget.Assistant) && resident.town.hasAssistant(resident)) return true
-        if (modifyPermission.contains(ModifyPermissiveTarget.Resident)) return true
+        val mayorUuid = town?.mayorUuid
+        if (mayorUuid != null && mayorUuid == resident.uuid) return true
+        if (resident.townUuid == townId && resident.isMayor) return true
+        if (modifyPermission.contains(ModifyPermissiveTarget.Assistant) && resident.isAssistant && resident.townUuid == townId) return true
+        if (modifyPermission.contains(ModifyPermissiveTarget.Resident) && resident.townUuid == townId) return true
         return false
     }
 
     fun hasPermissionToTeleport(town: Town, player: Player): Boolean {
         if (player.hasPermission("townteleport.admin")) return true
-        val resident = town.residents.find { it.name == player.name }
-        if (hasPermissionToModify(resident)) return true
-        if (teleportPermission.contains(TeleportPermissiveTarget.Resident) && resident != null) return true
-        if (teleportPermission.contains(TeleportPermissiveTarget.Nation) && town.nation.residents.any { it.name == player.name }) return true
-        if (teleportPermission.contains(TeleportPermissiveTarget.Ally) && town.nation.allies.any { it.residents.any { r -> r.name == player.name } }) return true
-        if (teleportPermission.contains(TeleportPermissiveTarget.Outsider) && resident == null) return true
+        val api = TowniaAPI.get()
+        val resident = api?.getResident(player.uniqueId)?.orElse(null)
+        if (hasPermissionToModify(resident, town)) return true
+        val isResident = resident != null && resident.townUuid == town.id
+        if (teleportPermission.contains(TeleportPermissiveTarget.Resident) && isResident) return true
+        if (teleportPermission.contains(TeleportPermissiveTarget.Nation) && town.nationUuid != null && resident != null && resident.townUuid != null) {
+            val residentTown = api.getTown(resident.townUuid!!).orElse(null)
+            if (residentTown != null && residentTown.nationUuid == town.nationUuid) return true
+        }
+        if (teleportPermission.contains(TeleportPermissiveTarget.Ally) && town.nationUuid != null && resident != null && resident.townUuid != null) {
+            val nation = api.getNation(town.nationUuid!!).orElse(null)
+            val residentTown = api.getTown(resident.townUuid!!).orElse(null)
+            if (nation != null && residentTown != null && residentTown.nationUuid != null && nation.allies.contains(residentTown.nationUuid)) return true
+        }
+        if (teleportPermission.contains(TeleportPermissiveTarget.Outsider) && !isResident) return true
         return false
     }
 }

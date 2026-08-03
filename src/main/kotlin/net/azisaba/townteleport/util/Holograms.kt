@@ -1,54 +1,15 @@
 package net.azisaba.townteleport.util
 
 import net.azisaba.townteleport.data.TownTeleportData
-import net.minecraft.server.v1_15_R1.ChatComponentText
-import net.minecraft.server.v1_15_R1.EntityArmorStand
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityDestroy
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityMetadata
-import net.minecraft.server.v1_15_R1.PacketPlayOutSpawnEntity
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.Location
-import org.bukkit.craftbukkit.v1_15_R1.CraftWorld
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer
+import org.bukkit.entity.Display
 import org.bukkit.entity.Player
+import org.bukkit.entity.TextDisplay
 import java.util.UUID
 
 object Holograms {
-    private fun createHologram(location: Location, text: String?): EntityArmorStand {
-        val worldServer = (location.world!! as CraftWorld).handle
-        val armorStand = EntityArmorStand(worldServer, location.x, location.y, location.z)
-        armorStand.isInvisible = true
-        armorStand.isInvulnerable = true
-        armorStand.isNoGravity = true
-        armorStand.isSmall = true
-        if (text != null) {
-            armorStand.customNameVisible = true
-            armorStand.customName = ChatComponentText(text)
-        }
-        return armorStand
-    }
-
-    private fun EntityArmorStand.spawn(player: Player): EntityArmorStand {
-        (player as CraftPlayer).handle.playerConnection.apply {
-            sendPacket(getSpawnPacket())
-            sendPacket(getUpdatePacket())
-        }
-        return this
-    }
-
-    private fun EntityArmorStand.destroy(player: Player): EntityArmorStand {
-        (player as CraftPlayer).handle.playerConnection.sendPacket(getDestroyPacket())
-        return this
-    }
-
-    private fun EntityArmorStand.getSpawnPacket() = PacketPlayOutSpawnEntity(this)
-
-    private fun EntityArmorStand.getDestroyPacket() = PacketPlayOutEntityDestroy(this.id)
-
-    private fun EntityArmorStand.getUpdatePacket() = PacketPlayOutEntityMetadata(this.id, this.dataWatcher, true)
-
-    private val shown = mutableMapOf<UUID, MutableMap<TownTeleportData, List<EntityArmorStand>>>()
+    private val shown = mutableMapOf<UUID, MutableMap<TownTeleportData, TextDisplay>>()
 
     fun updateAll(teleport: TownTeleportData) {
         shown.forEach { (uuid, map) ->
@@ -57,7 +18,7 @@ object Holograms {
                 shown.remove(uuid)
                 return@forEach
             }
-            map.remove(teleport)?.forEach { it.destroy(player) }
+            map.remove(teleport)?.remove()
             show(teleport, player)
         }
     }
@@ -65,22 +26,27 @@ object Holograms {
     fun show(teleport: TownTeleportData, player: Player) {
         val map = shown.computeIfAbsent(player.uniqueId) { mutableMapOf() }
         if (map.containsKey(teleport)) return
-        val teleportName = createHologram(teleport.location.clone().add(0.5, 1.75, 0.5), "${ChatColor.LIGHT_PURPLE}✦ ${ChatColor.YELLOW}${teleport.name.colored()}")
-        teleportName.spawn(player)
-        val useCost = createHologram(teleport.location.clone().add(0.5, 1.5, 0.5), "${ChatColor.GOLD}使用コスト: ${ChatColor.YELLOW}${teleport.useCost.toReadableString()}")
-        useCost.spawn(player)
-        val teleportCost = createHologram(teleport.location.clone().add(0.5, 1.25, 0.5), "${ChatColor.GOLD}テレポートコスト: ${ChatColor.YELLOW}${teleport.teleportCost.toReadableString()}")
-        teleportCost.spawn(player)
-        val clickToUse = createHologram(teleport.location.clone().add(0.5, 1.0, 0.5), "${ChatColor.GOLD}クリックで使用")
-        clickToUse.spawn(player)
-        map[teleport] = listOf(teleportName, useCost, teleportCost, clickToUse)
+        val loc = teleport.location.clone().add(0.5, 1.5, 0.5)
+        val world = loc.world ?: return
+        val textDisplay = world.spawn(loc, TextDisplay::class.java) { display ->
+            val text = listOf(
+                "${ChatColor.LIGHT_PURPLE}✦ ${ChatColor.YELLOW}${teleport.name.colored()}",
+                "${ChatColor.GOLD}使用コスト: ${ChatColor.YELLOW}${teleport.useCost.toReadableString()}",
+                "${ChatColor.GOLD}テレポートコスト: ${ChatColor.YELLOW}${teleport.teleportCost.toReadableString()}",
+                "${ChatColor.GOLD}クリックで使用"
+            ).joinToString("\n")
+            display.text = text
+            display.billboard = Display.Billboard.CENTER
+            display.isPersistent = false
+            display.isSeeThrough = false
+        }
+        map[teleport] = textDisplay
     }
 
     fun hide(teleport: TownTeleportData, player: Player) {
         val map = shown[player.uniqueId] ?: return
-        val list = map[teleport] ?: return
-        list.forEach { it.destroy(player) }
-        map.remove(teleport)
+        val display = map.remove(teleport) ?: return
+        display.remove()
     }
 
     fun getAll(player: Player): List<TownTeleportData> {
@@ -89,10 +55,8 @@ object Holograms {
     }
 
     fun hideAll(player: Player) {
-        val map = shown[player.uniqueId] ?: return
-        if (player.isOnline) {
-            map.values.forEach { list -> list.forEach { it.destroy(player) } }
-        }
+        val map = shown.remove(player.uniqueId) ?: return
+        map.values.forEach { it.remove() }
         map.clear()
     }
 }

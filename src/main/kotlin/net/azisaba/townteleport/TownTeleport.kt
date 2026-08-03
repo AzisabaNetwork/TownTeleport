@@ -11,7 +11,6 @@ import net.azisaba.townteleport.listener.NoPortalListener
 import net.azisaba.townteleport.listener.PlayerListener
 import net.azisaba.townteleport.listener.PortalListener
 import net.azisaba.townteleport.task.ShowHologramTask
-import net.azisaba.townteleport.util.ChannelUtil
 import net.azisaba.townteleport.util.Holograms
 import net.azisaba.townteleport.util.ItemUtil
 import net.azisaba.townteleport.util.PlayerUtil
@@ -26,8 +25,8 @@ class TownTeleport : JavaPlugin() {
     override fun onEnable() {
         PlayerUtil.plugin = this
 
-        if (Bukkit.getPluginManager().getPlugin("Towny") == null) {
-            logger.warning("Towny isn't installed. Registering listener that prevents placing of end portal frame")
+        if (Bukkit.getPluginManager().getPlugin("Townia") == null) {
+            logger.warning("Townia isn't installed. Registering listener that prevents placing of end portal frame")
             Bukkit.getPluginManager().registerEvents(NoPortalListener, this)
             return
         }
@@ -37,7 +36,7 @@ class TownTeleport : JavaPlugin() {
         Bukkit.getPluginCommand("townteleport")?.let {
             it.setExecutor { sender, _, _, _ ->
                 if (sender is Player) {
-                    sender.inventory.addItem(ItemUtil.createPortalItem())
+                    sender.inventory.addItem(ItemUtil.createPortalItem(this))
                 }
                 true
             }
@@ -51,20 +50,15 @@ class TownTeleport : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(PortalSettingsScreen.EventListener, this)
         Bukkit.getPluginManager().registerEvents(PortalTeleportPermissionScreen.EventListener, this)
 
-        Bukkit.getOnlinePlayers().forEach { player ->
-            ChannelUtil.inject(player)
-        }
-
         ShowHologramTask(this).runTaskTimer(this, 60, 60)
     }
 
     override fun onDisable() {
-        if (Bukkit.getPluginManager().getPlugin("Towny") == null) {
+        if (Bukkit.getPluginManager().getPlugin("Townia") == null) {
             return // do nothing
         }
 
         Bukkit.getOnlinePlayers().forEach { player ->
-            ChannelUtil.eject(player)
             Holograms.hideAll(player)
         }
 
